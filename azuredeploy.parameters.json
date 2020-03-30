@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+     "name": {
+         "value": "hbgrtst"
+     },
+     "locations": {
+         "value": ["westus","westus2"]
+     },
+     "APP_SECRET": {
+         "value": ""
+     },
+     "WEBCHAT_SECRET": {
+         "value": ""
+     },
+     "appServicePlanSku": {
+         "value": { "tier": "Standard", "name": "S1" }
+     },
+     "workerSize": {
+	"value": "1"
+     },
+     "qnaMakerServiceLocation": {
+         "value": "westus"
+     },
+     "qnaMakerServiceSku": {
+	"value": "S0"
+     }
+  }
+}
