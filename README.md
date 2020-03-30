@@ -8,36 +8,112 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-Give a short description for your sample here. What does it do and why is it important?
+This GitHub repo. contains the ARM templates for deploying Health Bot reference architecture. 
 
 ## Contents
 
-Outline the file contents of the repository. It helps users navigate the codebase, build configuration and any related assets.
-
-| File/folder       | Description                                |
+| File/Folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `src`             | Sample source code.                        |
-| `.gitignore`      | Define what to ignore at commit time.      |
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `README.md`       | This README file.                          |
-| `LICENSE`         | The license for the sample.                |
+| `ARM Templates`   | ARM Template to deploy the reference architecture.|
+| `CHANGELOG.md`    | List of changes to the template.|
+| `CONTRIBUTING.md` | Guidelines for contributing to the template.|
+| `README.md`       | This README file.|
+| `LICENSE`         | The license for the template.|
 
 ## Prerequisites
 
-Outline the required components and tools that a user might need to have on their machine in order to run the sample. This can be anything from frameworks, SDKs, OS versions or IDE releases.
+1. A **GitHub** Account to clone and/or fork this repository.
+
+2. An Azure **Resource Group** with **Owner** *Role* permission.  All Azure resources will be deployed into this resource group.
+
+3. Review the ARM template `azuredeploy.json` before proceeding. Update the resource configuration parameters to meet your requirements.
+
+4. (Optional) Latest version of the following tools installed on a workstation or on an Azure virtual machine.
+   - Azure CLI
+   - GitHub CLI
+
+## Reference Architecture
+
+![alt tag](./images/DeployArch-v10.jpg)
+
+Readers can refer to the following resources as needed.
+
+- [Azure CLI 2.0](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+- [Azure Resource Manager Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/)
+- [Azure Resource Manager Template Reference](https://docs.microsoft.com/en-us/azure/templates/)
+- [Microsoft Health Bot Documentation](https://docs.microsoft.com/en-us/healthbot/)
+- [Azure Cognitive Services Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/)
+- [Azure QnA Maker Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/qnamaker/)
+- [Azure Cognitive Search Documentation](https://docs.microsoft.com/en-us/azure/search/)
+- [Azure Function Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
 
 ## Setup
 
-Explain how to prepare the sample once the user clones or downloads the repository. The section should outline every step necessary to install dependencies and set up any settings (for example, API keys and output folders).
+Follow the steps below to deploy the Health Bot resources on Azure.
 
-## Running the ARM Template
+1. Login to Azure
 
-Outline step-by-step instructions to execute the sample and see its output. Include steps for executing the sample from the IDE, starting specific services in the Azure portal or anything related to the overall launch of the code.
+   Open a terminal window or login to the Azure [Cloud Shell](http://shell.azure.com).
 
-## Key concepts
+   Refer to the commands below to login to Azure from a command prompt in a VM.  You can skip this step if you are using the Azure Cloud shell.
 
-Provide users with more context on the tools and services used in the sample. Explain some of the code that is being used and how services interact with each other.
+   ```bash
+   # Login to Azure
+   $ az login
+   #
+   ```
+
+2. Clone this repository
+
+   Clone this GitHub repository to your local VM or cloud shell.  Refer to the command snippet below.
+
+   ```bash
+   # Create a directory to store all Git projects
+   $ mkdir git-repos
+   #
+   # Switch to the 'git-repos' directory
+   $ cd git-repos
+   #
+   # Clone this GitHub repository.
+   $ git clone https://github.com/microsoft/HealthBotRefArchDeploy.git
+   #
+   # Switch to the Health Bot project root directory
+   $ cd HealthBotRefArchDeploy
+   #
+   ```
+
+3. Validate the ARM deployment
+
+   Follow the steps in the command snippet below to validate the ARM template.
+   
+   ```bash
+   # (Optional) Create a resource group
+   # Substitute correct values for the following
+   #   - group-name : Name of the resource group
+   #   - region-name : Azure region for the resource group
+   #
+   $ az create group -n <group-name> -l <region-name>
+   #
+   # Validate the ARM template. Make sure there are no errors.
+   #
+   $ az group deployment validate --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
+   #
+   ```
+
+4. Run the ARM deployment
+
+   Follow the steps in the command snippet below to run the ARM template and provision the Health Bot resources on Azure.
+   
+   ```bash
+   # Deploy resources defined in the ARM template
+   #
+   $ az group deployment create --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
+   #
+   ```
+
+5. Verify Azure Resources
+
+   Login to the Azure portal and confirm all resources got provisioned in the resource group correctly.
 
 ## Contributing
 
