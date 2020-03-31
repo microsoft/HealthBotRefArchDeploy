@@ -38,9 +38,12 @@ This GitHub repo. contains the ARM template for deploying Health Bot reference a
 ## Reference Architecture
 
 The aim of this reference architecture is multifold.
-a. Help customers quickly deploy Microsoft **Health Bot** and **Cognitive Services** resources in **Production** region on Azure.
-b. Describe the integration touch points between the Health Bot, Azure Cognitive Services and Web Chat Client application.  Azure Cognitive Services includes Congitive Search, QnA Maker and other AI services.
-b. Guide customers to provision the Microsoft Health Bot resources in a highly available fault tolerant configuration.  Core services of the solution such as the Web Chat Client, QnA Maker runtime and Azure Cognitive Search are deployed in two separate Azure regions to provide for automatic failover.
+
+- Help customers quickly deploy Microsoft **Health Bot** and **Cognitive Services** resources in **Production** region on Azure.
+
+- Describe the integration touch points between the Health Bot, Azure Cognitive Services and Web Chat Client application.  Azure Cognitive Services includes Congitive Search, QnA Maker and other AI services.
+
+- Guide customers to provision the Microsoft Health Bot resources in a highly available fault tolerant configuration.  Core services of the solution such as the Web Chat Client, QnA Maker runtime and Azure Cognitive Search are deployed in two separate Azure regions to provide for automatic failover.
 
 ![alt tag](./images/DeployArch-v10.jpg)
 
@@ -61,8 +64,8 @@ Readers are advised to refer to the following resources as needed.
 
 ## Important Notes
 
-- Unless otherwise noted explicitly, the first **region** listed in the **locations** parameter (array) will be referred to as the **primary** and the second region will denote the **secondary**.
-- Use an alpha numeric name for the **deployment** name template parameter.  All Azure resources deployed by the ARM template will have names prefixed with this deployment name.
+- Unless otherwise noted explicitly, the first **region** listed in the **locations** parameter (array) will represent the **primary** region and the second will denote the **secondary** region.
+- The **name** ARM template parameter denotes a unique deployment.  Use an alpha numberic value for this name parameter. All Azure resources deployed by the ARM template will have names prefixed with this deployment name.
 - Azure Traffic Manager is used to shift the **Web Chat Client** and **QnA Maker** API traffic across the individual Azure App Service instances deployed in the two regions.  The end user (customer) is responsible for configuring the respective traffic routing algorithm in the Traffic Manager to ensure the traffic is split evenly between the App Service instances as per their requirements. 
 
 ## A] Deploy the ARM Template
@@ -154,7 +157,7 @@ Follow the steps below to deploy the Health Bot resources on Azure.
 
 6. Verify Azure Resources
 
-   Login to the Azure portal and confirm all resources got provisioned in the resource group correctly.
+   Login to the Azure portal. Confirm all resources were provisioned in the resource group correctly.
 
 ## B] Post-deployment Configuration
 
@@ -186,7 +189,7 @@ The following steps have to be completed manually once the ARM template is deplo
      ![alt tag](./images/A-05.jpg)
 
    **Azure Portal**
-   - Cognitive Search : Name ends with **-search0**.  Verify Index has been created.
+   - Cognitive Search : Name ends with **-search0**.  Verify search **indexes** has been created.
 
      ![alt tag](./images/A-06.jpg)
 
@@ -199,7 +202,7 @@ The following steps have to be completed manually once the ARM template is deplo
    
 2. Back up the QnA Maker runtime in **primary** region and restore it in the **secondary** region
 
-   The ARM template deploys one **Cognitive Services** resource and two QnA Maker App Service instances, one in each region. The template deploys the **QnA Maker** runtime only in the App Service instance deployed in the primary region. As a consequence, the QnA Maker runtime has to be deployed in the secondary region.  The quickest and easiest way is to take a back up of the QnA Maker App Service instance in the primary region and restore it in the secondary region.
+   The ARM template deploys one **Cognitive Services** resource and two QnA Maker **App Service** instances, one in each region. The template deploys the **QnA Maker** runtime only in the App Service instance deployed in the primary region. As a consequence, the QnA Maker runtime has to be deployed in the secondary region.  The quickest and easiest way is to take a back up of the QnA Maker App Service instance in the primary region and restore it in the secondary region.
 
    Refer to [Back up an app](https://docs.microsoft.com/en-us/azure/app-service/manage-backup) to take a back up of the QnA Maker App Service in the **primary** region. The QnA Maker App Service in the primary region would have a name ending with **-qnahost0**.
 
@@ -210,7 +213,7 @@ The following steps have to be completed manually once the ARM template is deplo
    Update QnA Maker App Service application settings in **secondary** region.
 
 
-   In Azure Portal, access the QnA Maker App Service instance in **secondary** region.  The name for this resource should end with **-qnahost1**.  Access the **Configuration** blade of the App Service and update the values of application settings listed in the table below.
+   In Azure Portal, access the QnA Maker App Service instance in **secondary** region.  The name for this resource should end with **-qnahost1**.  Access the **Configuration** blade of the App Service and update application settings values listed in the table below.
 
    Parameter Name | Description
    -------------- | -----------
@@ -230,11 +233,11 @@ The following steps have to be completed manually once the ARM template is deplo
 
    The Azure Function name ends with **-qnakb-sync** and is deployed in **primary** region.  This Function is configured with both an **HTTP** and **Timer** trigger.
 
-   To initiate the synchronization process manually, issue a HTTP `GET` API call to the Function HTTP endpoint (below) from a web browser or a terminal window (using `curl` command).
+   To initiate the synchronization process manually, issue a HTTP `GET` API call to the Function's HTTP endpoint (below) from a web browser or a terminal window (using `curl` command).
 
-   http://[name]-qnakb-sync.azurewebsites.net/api/httpcogsearchkbsync
+   http://[**name**]-qnakb-sync.azurewebsites.net/api/httpcogsearchkbsync
 
-   Substitute the **deployment** name in the `name` placeholder above.
+   Substitute the deployment **name** in the `name` placeholder above.
 
    >**NOTE:** The source code for the Azure Search [synchronization function](https://github.com/ganrad/AzSearchSyncIndexes) is available on GitHub.  The synchronization code can also be run as a standalone program.  The source code for the [standalone](https://github.com/pchoudhari/QnAMakerBackupRestore) program is also available on GitHub.
 
