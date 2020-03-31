@@ -8,13 +8,13 @@ Guidance on onboarding samples to docs.microsoft.com/samples: https://review.doc
 Taxonomies for products and languages: https://review.docs.microsoft.com/new-hope/information-architecture/metadata/taxonomies?branch=master
 -->
 
-This GitHub repo. contains the ARM templates for deploying Health Bot reference architecture. 
+This GitHub repo. contains the ARM template for deploying Health Bot reference architecture.
 
 ## Contents
 
 | File/Folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `ARM Template`   | ARM Template to deploy the reference architecture.|
+| `ARM Template`   | ARM Template `azuredeploy.json` to provision the Azure resources in the reference architecture.|
 | `CHANGELOG.md`    | List of changes to the template.|
 | `CONTRIBUTING.md` | Guidelines for contributing to the template.|
 | `README.md`       | This README file.|
@@ -28,17 +28,23 @@ This GitHub repo. contains the ARM templates for deploying Health Bot reference 
 
 3. A **Health Bot** instance.  Refer to [Create your first Healthcare Bot](https://docs.microsoft.com/en-us/healthbot/quickstart-createyourhealthcarebot) quickstart in the Health Bot documentation.
 
-3. Review the ARM template `azuredeploy.json` before proceeding. Update the resource configuration parameters to meet your requirements.
+3. Review the **ARM template** `azuredeploy.json` before proceeding. Update the resource configuration parameters to meet your requirements.
 
-4. (Optional) Latest version of the following tools installed on a workstation or on an Azure virtual machine.
+4. (Optional) The following CLI tools are preinstalled in Azure Cloud Shell.  In case you are planning to use a workstation or a VM to deploy the ARM template, install the CLI tools before proceeding.  Links for downloading the tools are provided in the next section.
+
    - Azure CLI
    - GitHub CLI
 
 ## Reference Architecture
 
+The aim of this reference architecture is multifold.
+a. Help customers quickly deploy Microsoft **Health Bot** and **Cognitive Services** resources in **Production** region on Azure.
+b. Describe the integration touch points between the Health Bot, Azure Cognitive Services and Web Chat Client application.  Azure Cognitive Services includes Congitive Search, QnA Maker and other AI services.
+b. Guide customers to provision the Microsoft Health Bot resources in a highly available fault tolerant configuration.  Core services of the solution such as the Web Chat Client, QnA Maker runtime and Azure Cognitive Search are deployed in two separate Azure regions to provide for automatic failover.
+
 ![alt tag](./images/DeployArch-v10.jpg)
 
-Readers can refer to the following resources as needed.
+Readers are advised to refer to the following resources as needed.
 
 - [Azure CLI 2.0](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 - [Git SCM Docs](https://git-scm.com/book/en/v2)
@@ -48,11 +54,18 @@ Readers can refer to the following resources as needed.
 - [Web Chat Client GitHub Repository](https://github.com/ganrad/HealthBotContainerSample)
 - [Azure Cognitive Services Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/)
 - [Azure QnA Maker Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/qnamaker/)
+- [Business Continuity Plan for QnA Maker Service](https://docs.microsoft.com/en-us/azure/cognitive-services/qnamaker/how-to/business-continuity-plan)
 - [Azure Cognitive Search Documentation](https://docs.microsoft.com/en-us/azure/search/)
 - [Synchronize Azure Search Indexes](https://github.com/ganrad/AzSearchSyncIndexes)
 - [Azure Function Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
 
-## Setup
+## Important Notes
+
+- Unless otherwise noted explicitly, the first **region** listed in the **locations** parameter (array) will be referred to as the **primary** and the second region will denote the **secondary**.
+- Use an alpha numeric name for the **deployment** name template parameter.  All Azure resources deployed by the ARM template will have names prefixed with this deployment name.
+- Azure Traffic Manager is used to shift the **Web Chat Client** and **QnA Maker** API traffic across the individual Azure App Service instances deployed in the two regions.  The end user (customer) is responsible for configuring the respective traffic routing algorithm in the Traffic Manager to ensure the traffic is split evenly between the App Service instances as per their requirements. 
+
+## A] Deploy the ARM Template
 
 Follow the steps below to deploy the Health Bot resources on Azure.
 
@@ -62,8 +75,8 @@ Follow the steps below to deploy the Health Bot resources on Azure.
 
    Parameter Name | Type | Description
    -------------- | ---- | -----------
-   name | string | A unique name for this deployment.  All provisioned resource names will be prefixed with this name. This includes the web site and traffic manager FQDN's.
-   locations | array (of strings) | Specify Azure region names (max. 2) where the resources need to be provisioned. The resources will be provisioned at most 2 regions.
+   name | string | A **unique name** for this deployment.  All provisioned resource names will be prefixed with this name. This includes the web site and traffic manager FQDN's.
+   locations | array (of strings) | Specify Azure region names (max. 2) where the resources need to be provisioned. The resources can be provisioned in a max. of 2 regions.
    WEBCHAT_SECRET | string | Health Bot instance **webchat_secret**.  Retrieve this secret value from the Health Bot Portal. Refer to the Health Bot documentation [here](https://docs.microsoft.com/en-us/healthbot/channels/webchat). 
    APP_SECRET | string | Health Bot instance **app_secret**. Obtain this secret value from the Health Bot Portal.
    appServicePlanSku | object | Use this object to specify the SKU size for the Azure App Service Plans.
@@ -137,10 +150,93 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    $ az deployment group create --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
    #
    ```
+   >**NOTE:** The ARM template will run for approximately 15 - 20 minutes.  Be patient and treat yourself to a cookie.
 
 6. Verify Azure Resources
 
    Login to the Azure portal and confirm all resources got provisioned in the resource group correctly.
+
+## B] Post-deployment Configuration
+
+The following steps have to be completed manually once the ARM template is deployed and all required resources have been provisioned on Azure.
+
+1. Generate the QnA Maker **Knowledge Base** for **COVID-19 FAQs** in the **Health Bot Service** Portal
+
+   Login to *Azure Portal* and retrieve the QnA Maker **Subscription Key** by accessing the *Cognitive Service*.  The Cognitive Service resource should have a name that ends with **-qna**.  See screenshot below.
+
+   ![alt tag](./images/A-01.jpg)
+
+   Login to *Health Bot Service Portal*, access the **Scenario Template Catalog** and create a QnA Model using **COVID-19 FAQs** template. See screenshots below.
+
+   ![alt tag](./images/A-02.jpg)
+
+   Specify the QnA Maker Subscription Key which you retrieved in the previous step.  Then click on **Import template**.
+
+   ![alt tag](./images/A-03.jpg)
+
+   Exit out of the *Scenario Editor*.  The previous step creates the following resources which can be viewed by accessing the respective portals.  See below.
+
+   **Health Bot Service Portal**
+   - Scenario : COVID-19 FAQs
+
+     ![alt tag](./images/A-04.jpg)
+
+   - Model : COVID-19 FAQs
+
+     ![alt tag](./images/A-05.jpg)
+
+   **Azure Portal**
+   - Cognitive Search : Name ends with **-search0**.  Verify Index has been created.
+
+     ![alt tag](./images/A-06.jpg)
+
+   **QnA Maker Portal**
+   - Knowledge Base : Healthcare Bot COVID-19 CDC
+
+     ![alt tag](./images/A-07.jpg)
+
+   Review the above resources.
+   
+2. Back up the QnA Maker runtime in **primary** region and restore it in the **secondary** region
+
+   The ARM template deploys one **Cognitive Services** resource and two QnA Maker App Service instances, one in each region. The template deploys the **QnA Maker** runtime only in the App Service instance deployed in the primary region. As a consequence, the QnA Maker runtime has to be deployed in the secondary region.  The quickest and easiest way is to take a back up of the QnA Maker App Service instance in the primary region and restore it in the secondary region.
+
+   Refer to [Back up an app](https://docs.microsoft.com/en-us/azure/app-service/manage-backup) to take a back up of the QnA Maker App Service in the **primary** region. The QnA Maker App Service in the primary region would have a name ending with **-qnahost0**.
+
+   Refer to [Restore a backup](https://docs.microsoft.com/en-us/azure/app-service/web-sites-restore) to restore the back up from primary into the secondary region.  The QnA Maker App Service in the secondary region would have a name ending with **-qnahost1**.
+
+3. Reconfigure the QnA Maker runtime in **secondary** region
+
+   Update QnA Maker App Service application settings in **secondary** region.
+
+
+   In Azure Portal, access the QnA Maker App Service instance in **secondary** region.  The name for this resource should end with **-qnahost1**.  Access the **Configuration** blade of the App Service and update the values of application settings listed in the table below.
+
+   Parameter Name | Description
+   -------------- | -----------
+   AzureSearchName | Specify the name of the Cognitive Search resource. Name of this resource should end with **-search1**.
+   AzureSearchAdminKey | Specify the value of Cognitive Search Admin key (Primary admin key). You can retrieve this key by accessing the **Keys** blade of the Cognitive Search instance.
+   UserAppInsightsAppId | Application Insights App ID
+   UserAppInsightsKey | Application Insights Instrumentation Key
+   UserAppInsightsName | Application Insights resource name
+
+   >**NOTE:** Remember to specify the names of the resources and application insights keys deployed in the **secondary** region.
+
+   Click **Save** and this will restart the QnA Maker App Service in the **secondary** region.
+
+4. Synchronize the Azure Search **Indexes** in the **primary** and **secondary** regions
+
+   Finally, invoke the *Azure Function* to copy the search **indexes** from the Cognitive Search instance in primary to secondary.
+
+   The Azure Function name ends with **-qnakb-sync** and is deployed in **primary** region.  This Function is configured with both an **HTTP** and **Timer** trigger.
+
+   To initiate the synchronization process manually, issue a HTTP `GET` API call to the Function HTTP endpoint (below) from a web browser or a terminal window (using `curl` command).
+
+   http://[name]-qnakb-sync.azurewebsites.net/api/httpcogsearchkbsync
+
+   Substitute the **deployment** name in the `name` placeholder above.
+
+   >**NOTE:** The source code for the Azure Search [synchronization function](https://github.com/ganrad/AzSearchSyncIndexes) is available on GitHub.  The synchronization code can also be run as a standalone program.  The source code for the [standalone](https://github.com/pchoudhari/QnAMakerBackupRestore) program is also available on GitHub.
 
 ## Contributing
 
