@@ -117,11 +117,11 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    #   - group-name: Name of the resource group
    #   - region-name: Azure region for the resource group
    #
-   $ az create group -n <group-name> -l <region-name>
+   $ az group create -n <group-name> -l <region-name>
    #
    # Validate the ARM template. Make sure there are no errors.
    #
-   $ az group deployment validate --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
+   $ az deployment group validate --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
    #
    ```
 
@@ -134,7 +134,7 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    # Substitute correct values for the following
    #   - group-name: Name of the resource group
    #
-   $ az group deployment create --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
+   $ az deployment group create --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
    #
    ```
 
