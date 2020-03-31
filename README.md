@@ -26,7 +26,7 @@ This GitHub repo. contains the ARM templates for deploying Health Bot reference 
 
 2. An Azure **Resource Group** with **Owner** *Role* permission.  All Azure resources will be deployed into this resource group.
 
-3. A **Health Bot** instance.  Refer to the [Create your first Healthcare Bot](https://docs.microsoft.com/en-us/healthbot/quickstart-createyourhealthcarebot) quickstart in the Health Bot documentation.
+3. A **Health Bot** instance.  Refer to [Create your first Healthcare Bot](https://docs.microsoft.com/en-us/healthbot/quickstart-createyourhealthcarebot) quickstart in the Health Bot documentation.
 
 3. Review the ARM template `azuredeploy.json` before proceeding. Update the resource configuration parameters to meet your requirements.
 
@@ -49,6 +49,7 @@ Readers can refer to the following resources as needed.
 - [Azure Cognitive Services Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/)
 - [Azure QnA Maker Documentation](https://docs.microsoft.com/en-us/azure/cognitive-services/qnamaker/)
 - [Azure Cognitive Search Documentation](https://docs.microsoft.com/en-us/azure/search/)
+- [Synchronize Azure Search Indexes](https://github.com/ganrad/AzSearchSyncIndexes)
 - [Azure Function Documentation](https://docs.microsoft.com/en-us/azure/azure-functions/)
 
 ## Setup
@@ -62,18 +63,18 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    Parameter Name | Type | Description
    -------------- | ---- | -----------
    name | string | A unique name for this deployment.  All provisioned resource names will be prefixed with this name. This includes the web site and traffic manager FQDN's.
-   locations | array (of strings) | An array of Azure region names. The resources will be provisioned at most 2 regions.
-   WEBCHAT_SECRET | string | Health Bot instance **webchat_secret**.  This secret is available on the Health Bot Portal. Refer to the Health Bot documentation [here](https://docs.microsoft.com/en-us/healthbot/channels/webchat). 
-   APP_SECRET | string | Health Bot instance **app_secret**. This secret is available on the Health Bot Portal.
+   locations | array (of strings) | Specify Azure region names (max. 2) where the resources need to be provisioned. The resources will be provisioned at most 2 regions.
+   WEBCHAT_SECRET | string | Health Bot instance **webchat_secret**.  Retrieve this secret value from the Health Bot Portal. Refer to the Health Bot documentation [here](https://docs.microsoft.com/en-us/healthbot/channels/webchat). 
+   APP_SECRET | string | Health Bot instance **app_secret**. Obtain this secret value from the Health Bot Portal.
    appServicePlanSku | object | Use this object to specify the SKU size for the Azure App Service Plans.
    workerSize | string | Specify the number of workers in the Azure App Service Plan.
    qnaMakerServiceLocation | string | QnA Maker resource location.  This should be set to **westus** for all commercial deployments.
    qnaMakerServiceSku | string | Specify the SKU size for the Cognitive Services account.
    qnaMakerSearchSku | string | Specify the SKU size for the Cognitive Search instances.
-   webchatRepoUrl | string | Web Chat Client GitHub Repo. uri. Use the default value as-is.
-   webchatRepoBranch | string | Web Chat Client GitHub Repo. branch.  Use the default value (`master`).  If Web Chat Client **v3** is desired, then set the value to **webchat_v3**.
-   funcRepoUrl | string | GitHub repo. uri for Azure Functions.  These functions synchronize the knowledge bases (indexs) between the Azure Search instances deployed in the two regions. 
-   funcRepoBranch | string | GitHub repo. branch for Azure Functions.  Use the default value (`master`).
+   webchatRepoUrl | string | Web Chat Client GitHub repository uri. Use the default value as-is.
+   webchatRepoBranch | string | Web Chat Client GitHub repository branch.  Use the default value (`master`).  If Web Chat Client **v3** is desired, then set the value to **webchat_v3**.
+   funcRepoUrl | string | GitHub repository uri for Azure Functions.  The functions synchronize the knowledge bases (indexs) between the Azure Search instances deployed in two different regions. 
+   funcRepoBranch | string | GitHub repository branch for Azure Functions.  Use the default value (`master`).
 
 2. Login to Azure
 
