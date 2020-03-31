@@ -134,7 +134,7 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    # Substitute correct values for the following
    #   - group-name: Name of the resource group
    #
-   $ az group deployment create --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
+   $ az deployment group create --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
    #
    ```
 
