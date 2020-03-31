@@ -121,7 +121,7 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    #
    # Validate the ARM template. Make sure there are no errors.
    #
-   $ az group deployment validate --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
+   $ az deployment group validate --verbose --resource-group <group-name> --template-file azuredeploy.json --parameters @./azuredeploy.parameters.json
    #
    ```
 
