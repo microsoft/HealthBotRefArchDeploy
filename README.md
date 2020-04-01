@@ -1,4 +1,4 @@
-# Deploy the reference architecture for Microsoft Healthcare Bot and QnAMaker
+# Deploy Reference Architecture for Microsoft Healthcare Bot and QnA Maker
 
 <!-- 
 Guidelines on README format: https://review.docs.microsoft.com/help/onboard/admin/samples/concepts/readme-template?branch=master
@@ -14,7 +14,7 @@ This GitHub repo. contains the ARM template for deploying Health Bot reference a
 
 | File/Folder       | Description                                |
 |-------------------|--------------------------------------------|
-| `ARM Template`   | ARM Template `azuredeploy.json` to provision the Azure resources in the reference architecture.|
+| `ARM Template`   | `azuredeploy.json` and `cert-deploy.json` provision the Azure resources in the reference architecture.|
 | `CHANGELOG.md`    | List of changes to the template.|
 | `CONTRIBUTING.md` | Guidelines for contributing to the template.|
 | `README.md`       | This README file.|
@@ -49,7 +49,7 @@ The aim of this reference architecture is multifold.
 
 Readers are advised to refer to the following resources as needed.
 
-- [Azure CLI 2.0](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
+- [Azure CLI 2.2+](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest)
 - [Git SCM Docs](https://git-scm.com/book/en/v2)
 - [Azure Resource Manager Documentation](https://docs.microsoft.com/en-us/azure/azure-resource-manager/)
 - [Azure Resource Manager Template Reference](https://docs.microsoft.com/en-us/azure/templates/)
@@ -65,10 +65,10 @@ Readers are advised to refer to the following resources as needed.
 ## Important Notes
 
 - Unless otherwise noted explicitly, the first **region** listed in the **locations** parameter (array) will represent the **primary** region and the second will denote the **secondary** region.
-- The **name** ARM template parameter denotes a unique deployment.  Use an alpha numberic value for this name parameter. All Azure resources deployed by the ARM template will have names prefixed with this deployment name.
+- The ARM template parameter **name** has to be unique for each Health Bot deployment.  Use an alpha numberic value for this name parameter. All Azure resources deployed by the ARM template will have names prefixed with this deployment name.
 - Azure Traffic Manager is used to shift the **Web Chat Client** and **QnA Maker** API traffic across the individual Azure App Service instances deployed in the two regions.  The end user (customer) is responsible for configuring the respective traffic routing algorithm in the Traffic Manager to ensure the traffic is split evenly between the App Service instances as per their requirements. 
 
-## A] Deploy the ARM Template
+## A] Deploy ARM Template to Provision resources
 
 Follow the steps below to deploy the Health Bot resources on Azure.
 
@@ -123,7 +123,7 @@ Follow the steps below to deploy the Health Bot resources on Azure.
    #
    ```
 
-4. Validate the ARM deployment
+4. Validate the ARM template
 
    Follow the steps in the command snippet below to validate the ARM template.
    
@@ -159,7 +159,58 @@ Follow the steps below to deploy the Health Bot resources on Azure.
 
    Login to the Azure portal. Confirm all resources were provisioned in the resource group correctly.
 
-## B] Post-deployment Configuration
+## B] Deploy ARM Template to configure TLS/SSL certificates for Azure App Services
+
+>**NOTE:** For configuring a custom domain and TLS certificates, skip the steps below and refer to the section at the end of this section (links to App Service documentation).
+
+Follow the steps below to configure **App Service Managed Certificate** for the *Web Chat Client* and *QnA Maker* App Services.
+
+1. Review and update template parameters in the `cert-deploy.parameters.json` file
+
+   Refer to the table below for a description of the template parameters.  Configure the values as per your requirements.
+
+   Parameter Name | Type | Description
+   -------------- | ---- | -----------
+   name | string | A **unique name** for this deployment.  All provisioned resource names will be prefixed with this name. Specify the same deployment **name** as in Section **A**.
+   locations | array (of strings) | Specify Azure region names (max. 2) where the resources need to be provisioned. The resources can be provisioned in a max. of 2 regions.  Specify the same locations which were specified in Section **A**.
+   tmDomainSuffix | string | The default DNS suffix for Azure Traffic Manager is **.trafficmanager.net**.
+
+2. Validate the ARM template
+
+   After making the required changes to the template parameters file, follow the steps in the command snippet below to validate the ARM template.
+
+   ```bash
+   # Validate the ARM template. Make sure there are no errors.
+   # Substitute correct values for
+   #   - group-name: Name of the Azure Resource Group
+   #
+   $ az deployment group validate --verbose --resource-group <group-name> --template-file cert-deploy.json --parameters @./cert-deploy.parameters.json
+   #
+   ```
+
+3. Run the ARM deployment
+
+   Refer to the command snippet below to run the ARM template.
+
+   ```bash
+   # Deploy resources defined in the ARM template
+   # Substitute correct values for the following
+   #   - group-name: Name of the resource group
+   #
+   $ az deployment group create --verbose --resource-group <group-name> --template-file cert-deploy.json --parameters @./cert-deploy.parameters.json
+   #
+   ```
+
+4. Verify TLS/SSL and Custom domain configurations for App Services
+
+   Login to the Azure Portal.  Go to the *App Service* and click on **Custom domains** and **TLS/SSL settings** blades.  Verify the custom domain, TLS/SSL certificate and bindings have been configured properly.
+
+For configuring custom domains and TLS certificates with the App Services, refer to the articles below.
+
+- [Add an SSL certificate in Azure App Service](https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate)
+- [Secure a custom DNS name with SSL binding in Azure App Service](https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-bindings)
+
+## C] Post-deployment Configuration
 
 The following steps have to be completed manually once the ARM template is deployed and all required resources have been provisioned on Azure.
 
@@ -180,21 +231,21 @@ The following steps have to be completed manually once the ARM template is deplo
    Exit out of the *Scenario Editor*.  The previous step creates the following resources which can be viewed by accessing the respective portals.  See below.
 
    **Health Bot Service Portal**
-   - Scenario : COVID-19 FAQs
+   - **Scenario** : COVID-19 FAQs
 
      ![alt tag](./images/A-04.jpg)
 
-   - Model : COVID-19 FAQs
+   - **Model** : COVID-19 FAQs
 
      ![alt tag](./images/A-05.jpg)
 
    **Azure Portal**
-   - Cognitive Search : Name ends with **-search0**.  Verify search **indexes** has been created.
+   - **Cognitive Search** : Name ends with **-search0**.  Verify search **indexes** has been created.
 
      ![alt tag](./images/A-06.jpg)
 
    **QnA Maker Portal**
-   - Knowledge Base : Healthcare Bot COVID-19 CDC
+   - **Knowledge Base** : Healthcare Bot COVID-19 CDC
 
      ![alt tag](./images/A-07.jpg)
 
