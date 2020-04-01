@@ -1,0 +1,206 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "metadata" : {
+        "comments": "This ARM template deploys Azure resources included in the Health Bot Reference Architecture",
+        "author": "Microsoft Healthcare CSU"
+    },
+    "parameters": {
+        "name": {
+            "type": "string",
+            "metadata":{
+                "description":"Base name (prefix) for all resources."
+            }
+        },
+        "locations": {
+            "type": "array",
+            "defaultValue": [
+                "westus",
+                "eastus"
+            ],
+            "metadata":{
+                "description":"Array of Azure deployment regions to deploy to."
+            }
+        },
+        "tmDomainSuffix": {
+            "type": "string",
+	    "defaultValue": ".trafficmanager.net",
+            "metadata":{
+                "description":"Azure Traffic Manager DNS suffix"
+            }
+        }
+    },
+    "variables": {
+	"appServicePlanName": "[concat(parameters('name'), '-appServicePlan')]",
+        "webAppClientName": "[concat(parameters('name'), '-webClient')]",
+	"customDomainWebAppSvc": "[concat(parameters('name'), '-webclient', parameters('tmDomainSuffix'))]",
+        "qnaMakerWebAppName": "[replace(concat(parameters('name'), '-qnahost'), '_', '')]",
+	"customDomainQnaAppSvc": "[concat(parameters('name'), '-qna', parameters('tmDomainSuffix'))]"
+    },
+    "resources": [
+	{
+            "type": "Microsoft.Web/sites/hostnameBindings",
+            "apiVersion": "2019-08-01",
+	    "name": "[concat(variables('webAppClientName'), copyIndex(), '/', variables('customDomainWebAppSvc'))]",
+            "location": "[parameters('locations')[copyIndex()]]",
+            "properties": {
+            },
+	    "copy": {
+                "name": "locationLoop",
+                "count": "[length(parameters('locations'))]"
+            }
+        },
+	{
+            "type": "Microsoft.Web/certificates",
+            "apiVersion": "2019-08-01",
+            "name": "[concat(variables('webAppClientName'), copyIndex())]",
+            "location": "[parameters('locations')[copyIndex()]]",
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', concat(variables('appServicePlanName'), copyIndex()))]",
+                "canonicalName": "[variables('customDomainWebAppSvc')]"
+            },
+	    "dependsOn": [
+	       "[concat('Microsoft.Web/sites/', concat(variables('webAppClientName'), copyIndex(), '/hostnameBindings/', variables('customDomainWebAppSvc')))]"
+            ],
+	    "copy": {
+                "name": "locationLoop",
+                "count": "[length(parameters('locations'))]"
+            }
+        },
+	{
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                      {
+                        "type": "Microsoft.Web/sites/hostnameBindings",
+                        "name": "[concat(variables('webAppClientName'),'0','/',variables('customDomainWebAppSvc'))]",
+                        "apiVersion": "2019-08-01",
+                        "location": "[parameters('locations')[0]]",
+                        "properties": {
+                          "sslState": "SniEnabled",
+                          "thumbprint": "[reference(resourceId('Microsoft.Web/certificates', concat(variables('webAppClientName'), '0'))).Thumbprint]"
+                        }
+                      }
+                    ],
+                    "outputs": {
+                    }
+                }
+            }
+        },
+	{
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate0",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                      {
+                        "type": "Microsoft.Web/sites/hostnameBindings",
+                        "name": "[concat(variables('webAppClientName'),'1','/',variables('customDomainWebAppSvc'))]",
+                        "apiVersion": "2019-08-01",
+                        "location": "[parameters('locations')[1]]",
+                        "properties": {
+                          "sslState": "SniEnabled",
+                          "thumbprint": "[reference(resourceId('Microsoft.Web/certificates', concat(variables('webAppClientName'), '1'))).Thumbprint]"
+                        }
+                      }
+                    ],
+                    "outputs": {
+                    }
+                }
+            }
+        },
+	{
+            "type": "Microsoft.Web/sites/hostnameBindings",
+            "apiVersion": "2019-08-01",
+	    "name": "[concat(variables('qnaMakerWebAppName'), copyIndex(), '/', variables('customDomainQnaAppSvc'))]",
+            "location": "[parameters('locations')[copyIndex()]]",
+            "properties": {
+            },
+	    "copy": {
+                "name": "locationLoop",
+                "count": "[length(parameters('locations'))]"
+            }
+        },
+	{
+            "type": "Microsoft.Web/certificates",
+            "apiVersion": "2019-08-01",
+            "name": "[concat(variables('qnaMakerWebAppName'), copyIndex())]",
+            "location": "[parameters('locations')[copyIndex()]]",
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms/', concat(variables('appServicePlanName'), copyIndex()))]",
+                "canonicalName": "[variables('customDomainQnaAppSvc')]"
+            },
+	    "dependsOn": [
+	       "[concat('Microsoft.Web/sites/', concat(variables('qnaMakerWebAppName'), copyIndex(), '/hostnameBindings/', variables('customDomainQnaAppSvc')))]"
+            ],
+	    "copy": {
+                "name": "locationLoop",
+                "count": "[length(parameters('locations'))]"
+            }
+        },
+	{
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate1",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                      {
+                        "type": "Microsoft.Web/sites/hostnameBindings",
+                        "name": "[concat(variables('qnaMakerWebAppName'),'0','/',variables('customDomainQnaAppSvc'))]",
+                        "apiVersion": "2019-08-01",
+                        "location": "[parameters('locations')[0]]",
+                        "properties": {
+                          "sslState": "SniEnabled",
+                          "thumbprint": "[reference(resourceId('Microsoft.Web/certificates', concat(variables('qnaMakerWebAppName'), '0'))).Thumbprint]"
+                        }
+                      }
+                    ],
+                    "outputs": {
+                    }
+                }
+            }
+        },
+	{
+            "apiVersion": "2017-05-10",
+            "name": "nestedTemplate2",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                      {
+                        "type": "Microsoft.Web/sites/hostnameBindings",
+                        "name": "[concat(variables('qnaMakerWebAppName'),'1','/',variables('customDomainQnaAppSvc'))]",
+                        "apiVersion": "2019-08-01",
+                        "location": "[parameters('locations')[1]]",
+                        "properties": {
+                          "sslState": "SniEnabled",
+                          "thumbprint": "[reference(resourceId('Microsoft.Web/certificates', concat(variables('qnaMakerWebAppName'), '1'))).Thumbprint]"
+                        }
+                      }
+                    ],
+                    "outputs": {
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {
+    }
+}

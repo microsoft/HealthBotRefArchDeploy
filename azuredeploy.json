@@ -1,6 +1,10 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
     "contentVersion": "1.0.0.0",
+    "metadata" : {
+	"comments": "This ARM template deploys Azure resources included in the Health Bot Reference Architecture",
+	"author": "Microsoft Healthcare CSU"
+    },
     "parameters": {
         "name": {
             "type": "string",
@@ -14,8 +18,10 @@
                 "westus",
                 "eastus"
             ],
+            "minLength": 2,
+            "maxLength": 2,
             "metadata":{
-                "description":"Array of Azure deployment regions to deploy to."
+                "description":"Array of Azure regions to deploy resources to."
             }
         },
         "APP_SECRET": {
@@ -184,9 +190,21 @@
 			{
 			    "name": "WEBSITE_NODE_DEFAULT_VERSION",
 			    "value": "6.9.1"
+			},
+			{
+			    "name": "UserAppInsightsKey",
+			    "value": "[reference(resourceId('Microsoft.Insights/components/', concat(variables('appInsightsName'), copyIndex())), '2015-05-01').InstrumentationKey]"
+			},
+                        {
+			    "name": "UserAppInsightsName",
+			    "value": "[concat(variables('appInsightsName'), copyIndex())]"
+			},
+                        {   "name": "UserAppInsightsAppId",
+			    "value": "[reference(resourceId('Microsoft.Insights/components/', concat(variables('appInsightsName'), copyIndex())), '2015-05-01').AppId]"
 			}
                     ]
-                }
+                },
+		"httpsOnly": "true"
             },
             "resources": [
                 {
@@ -269,7 +287,8 @@
                             "*"
                         ]
                     }
-                }
+                },
+		"httpsOnly": "true"
             },
             "dependsOn": [
                 "[concat('Microsoft.Web/serverfarms/', concat(variables('appServicePlanName'), copyIndex()))]"
@@ -309,14 +328,14 @@
             "location": "global",
             "properties": {
                 "profileStatus": "Enabled",
-                "trafficRoutingMethod": "Priority",
+                "trafficRoutingMethod": "Performance",
                 "dnsConfig": {
                     "relativeName": "[variables('trafficManagerDnsName')]",
                     "ttl": 30
                 },
                 "monitorConfig": {
-                    "protocol": "HTTP",
-                    "port": 80,
+                    "protocol": "HTTPS",
+                    "port": 443,
                     "path": "/"
                 }
             }
@@ -336,6 +355,7 @@
             },
             "properties": {
                 "targetResourceId": "[resourceId('Microsoft.Web/sites/', concat(variables('webAppClientName'), copyIndex()))]",
+		"endpointLocation": "[parameters('locations')[copyIndex()]]",
                 "endpointStatus": "Enabled"
             }
         },
@@ -346,14 +366,14 @@
             "location": "global",
             "properties": {
                 "profileStatus": "Enabled",
-                "trafficRoutingMethod": "Priority",
+                "trafficRoutingMethod": "Weighted",
                 "dnsConfig": {
                     "relativeName": "[variables('qnaTrafficManagerDnsName')]",
                     "ttl": 30
                 },
                 "monitorConfig": {
-                    "protocol": "HTTP",
-                    "port": 80,
+                    "protocol": "HTTPS",
+                    "port": 443,
                     "path": "/"
                 }
             }
@@ -373,6 +393,7 @@
             },
             "properties": {
                 "targetResourceId": "[resourceId('Microsoft.Web/sites/', concat(variables('qnaMakerWebAppName'), copyIndex()))]",
+		"weight": 1,
                 "endpointStatus": "Enabled"
             }
         },
