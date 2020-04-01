@@ -68,7 +68,7 @@ Readers are advised to refer to the following resources as needed.
 - The ARM template parameter **name** has to be unique for each Health Bot deployment.  Use an alpha numberic value for this name parameter. All Azure resources deployed by the ARM template will have names prefixed with this deployment name.
 - Azure Traffic Manager is used to shift the **Web Chat Client** and **QnA Maker** API traffic across the individual Azure App Service instances deployed in the two regions.  The end user (customer) is responsible for configuring the respective traffic routing algorithm in the Traffic Manager to ensure the traffic is split evenly between the App Service instances as per their requirements. 
 
-## A] Deploy ARM Template to Provision resources
+## A] Deploy ARM Template to provision Health Bot resources
 
 Follow the steps below to deploy the Health Bot resources on Azure.
 
